@@ -129,12 +129,36 @@ class ROPMakerX86:
         print("\tp += pack('<I', 0x%08x) # %s" %(write4where["vaddr"], write4where["gadget"]))
         self.__padding(write4where, {})
 
+        # Now, need to put &data and zero to into data + 12
+        print("\tp += pack('<I', 0x%08x) # %s" %(popDst["vaddr"], popDst["gadget"]))
+        print("\tp += pack('<I', 0x%08x) # @ .data + 12" %(dataAddr+12))
+        self.__padding(popDst, {})
+
+        print("\tp += pack('<I', 0x%08x) # %s" %(popSrc["vaddr"], popSrc["gadget"]))
+        print("\tp += pack('<I', 0x%08x) # @ .data" %(dataAddr))
+        self.__padding(popSrc, {popDst["gadget"].split()[1]: dataAddr}) # Don't overwrite reg dst
+
+        print("\tp += pack('<I', 0x%08x) # %s" %(write4where["vaddr"], write4where["gadget"]))
+        self.__padding(write4where, {})
+
+        # &data should be at &data + 12
+        # need to zero out &data + 16
+        print("\tp += pack('<I', 0x%08x) # %s" %(popDst["vaddr"], popDst["gadget"]))
+        print("\tp += pack('<I', 0x%08x) # @ .data + 16" %(dataAddr + 16))
+        self.__padding(popDst, {})
+
+        print("\tp += pack('<I', 0x%08x) # %s" %(xorSrc["vaddr"], xorSrc["gadget"]))
+        self.__padding(xorSrc, {})
+
+        print("\tp += pack('<I', 0x%08x) # %s" %(write4where["vaddr"], write4where["gadget"]))
+        self.__padding(write4where, {})
+
         print("\tp += pack('<I', 0x%08x) # %s" %(popEbx["vaddr"], popEbx["gadget"]))
         print("\tp += pack('<I', 0x%08x) # @ .data" %(dataAddr))
         self.__padding(popEbx, {})
 
         print("\tp += pack('<I', 0x%08x) # %s" %(popEcx["vaddr"], popEcx["gadget"]))
-        print("\tp += pack('<I', 0x%08x) # @ .data + 8" %(dataAddr + 8))
+        print("\tp += pack('<I', 0x%08x) # @ .data + 12" %(dataAddr + 12))
         self.__padding(popEcx, {"ebx": dataAddr}) # Don't overwrite ebx
 
         print("\tp += pack('<I', 0x%08x) # %s" %(popEdx["vaddr"], popEdx["gadget"]))
